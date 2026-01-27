@@ -1,131 +1,125 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { motion, useScroll, useMotionValueEvent } from "framer-motion";
+import { useEffect, useState } from "react";
 
 const navLinks = [
   { label: "Home", href: "/" },
-  { label: "Our Story", href: "/our-story" },
+  { label: "About Us", href: "/our-story" },
   { label: "Services", href: "/services" },
   { label: "Resources", href: "/resources" },
   { label: "Contact Us", href: "/contact" },
   { label: "FAQs", href: "/faq" },
 ];
 
-export default function Navbar() {
-  const [open, setOpen] = useState(false);
+function isRouteActive(pathname: string, href: string) {
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname.startsWith(href + "/");
+}
 
+export default function Navbar() {
+  const pathname = usePathname();
+
+  const [hidden, setHidden] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  const { scrollY } = useScroll();
+
+  // show/hide on scroll direction
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    const prev = scrollY.getPrevious() ?? 0;
+
+    // background/shadow after slight scroll
+    setScrolled(latest > 8);
+
+    // If user scrolls DOWN -> hide, UP -> show
+    if (latest > prev && latest > 120) setHidden(true);
+    else setHidden(false);
+  });
+
+  // close any mobile menu etc. if needed later
   useEffect(() => {
-    const onResize = () => {
-      if (window.innerWidth >= 768) setOpen(false);
-    };
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
+    // placeholder for route-change side effects
+  }, [pathname]);
 
   return (
-    <header className="w-full pt-10">
-      <div className="mx-auto max-w-6xl px-4">
-        <div className="relative mx-auto w-full rounded-full bg-[var(--purple)] px-4 py-3 md:px-6">
-          <div className="flex items-center justify-between">
-            {/* Logo (IMAGE ONLY) */}
-            <Link href="/" className="flex items-center">
-              <Image
-                src="/images/logo.png"
-                alt="Revelation ML"
-                width={44}
-                height={44}
-                priority
-                className="h-11 w-11"
-              />
-            </Link>
+    <motion.header
+      className="fixed top-0 z-50 w-full"
+      initial={false}
+      animate={hidden ? "hidden" : "visible"}
+      variants={{
+        visible: { y: 0, opacity: 1 },
+        hidden: { y: -90, opacity: 0 },
+      }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
+    >
+      <div className="mx-auto max-w-6xl px-4 pt-4 md:pt-6">
+        {/* Floating pill */}
+        <div
+          className={cn(
+            "relative flex h-[64px] w-full items-center overflow-hidden rounded-full bg-[#7F289A]",
+            // floating effect + smooth shadow
+            scrolled
+              ? "shadow-[0_14px_40px_rgba(0,0,0,0.22)]"
+              : "shadow-[0_10px_26px_rgba(0,0,0,0.16)]"
+          )}
+        >
+          {/* Left logo block */}
+          <Link
+            href="/"
+            className="flex h-full w-[140px] items-center justify-center bg-[#6c217f]"
+          >
+            <Image
+              src="/images/logo.png"
+              alt="Logo"
+              width={46}
+              height={46}
+              priority
+              className="h-11 w-11"
+            />
+          </Link>
 
-            {/* Desktop Links */}
-            <nav className="hidden items-center gap-8 md:flex">
-              {navLinks.map((l) => (
+          {/* Tabs (equal segments, exact Figma active block style) */}
+          <nav className="hidden h-full flex-1 items-center md:flex">
+            {navLinks.map((l, idx) => {
+              const active = isRouteActive(pathname, l.href);
+
+              return (
                 <Link
                   key={l.href}
                   href={l.href}
-                  className="text-sm text-white/90 hover:text-white"
+                  className={cn(
+                    "relative flex h-full flex-1 items-center justify-center text-sm font-medium transition-colors",
+                    active
+                      ? "bg-[#CDB6FF] text-[#1E1230]"
+                      : "text-white/90 hover:text-white"
+                  )}
                 >
                   {l.label}
+
+                  {/* separators */}
+                  {idx !== navLinks.length - 1 && (
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        "pointer-events-none absolute right-0 top-1/2 h-[34px] w-px -translate-y-1/2",
+                        active ? "bg-black/10" : "bg-white/15"
+                      )}
+                    />
+                  )}
                 </Link>
-              ))}
-            </nav>
+              );
+            })}
+          </nav>
 
-            {/* Desktop CTA */}
-            <div className="hidden md:block">
-              <Button className="rounded-full bg-[var(--purple-dark)] px-6 text-white hover:opacity-95">
-                View Demos
-              </Button>
-            </div>
-
-            {/* Mobile menu button */}
-            <button
-              type="button"
-              onClick={() => setOpen((v) => !v)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-white/20 md:hidden"
-              aria-label="Toggle menu"
-              aria-expanded={open}
-            >
-              {open ? <CloseIcon /> : <MenuIcon />}
-            </button>
-          </div>
-
-          {/* Mobile dropdown */}
-          {open && (
-            <div className="absolute left-0 right-0 top-[calc(100%+10px)] z-50 mx-auto w-full rounded-2xl bg-[var(--purple)] p-4 shadow-[0_16px_40px_rgba(0,0,0,0.18)] ring-1 ring-white/15 md:hidden">
-              <nav className="flex flex-col gap-2">
-                {navLinks.map((l) => (
-                  <Link
-                    key={l.href}
-                    href={l.href}
-                    onClick={() => setOpen(false)}
-                    className="rounded-xl px-3 py-3 text-sm text-white/90 hover:bg-white/10 hover:text-white"
-                  >
-                    {l.label}
-                  </Link>
-                ))}
-              </nav>
-
-              <Button
-                onClick={() => setOpen(false)}
-                className="mt-4 h-11 w-full rounded-full bg-[var(--purple-dark)] text-white hover:opacity-95"
-              >
-                View Demos
-              </Button>
-            </div>
-          )}
+          {/* Right CTA (invert hover + depth click) */}
+        
         </div>
       </div>
-    </header>
-  );
-}
-
-function MenuIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M4 7h16M4 12h16M4 17h16"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function CloseIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M6 6l12 12M18 6L6 18"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-    </svg>
+    </motion.header>
   );
 }

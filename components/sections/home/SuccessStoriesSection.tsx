@@ -1,165 +1,146 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import PortfolioCard from "../portfolio/pCard";
-type Testimonial = {
+import Image from "next/image";
+import { useMemo } from "react";
+import { cn } from "@/lib/utils";
+
+type Story = {
+  id: string;
   name: string;
-  role: string;
-  text: string;
+  role?: string;
+  avatar?: string;
+  quote: string;
 };
 
-const testimonials: Testimonial[] = [
+const stories: Story[] = [
   {
+    id: "1",
     name: "John Smith",
-    role: "Operations Lead",
-    text:
+    avatar: "/images/avatar1.png", // replace or remove
+    quote:
       "This HR management platform has been a game-changer for our organization. Before we switched, our HR processes were fragmented and time-consuming. Performance management is seamlessly integrated.",
   },
   {
-    name: "Ayesha Khan",
-    role: "Founder",
-    text:
-      "We reduced manual workload dramatically. The workflows are clear, reliable, and easy to scale. It feels like our operations finally work with us, not against us.",
+    id: "2",
+    name: "Mike Josaf",
+    avatar: "/images/avatar2.png",
+    quote:
+      "This HR management platform has been a game-changer for our organization. Before we switched, our HR processes were fragmented and time-consuming. Performance management is seamlessly integrated.",
   },
   {
-    name: "Michael Lee",
-    role: "Product Manager",
-    text:
-      "The delivery was fast and polished. The UI is pixel-perfect and the system is stable. Our team adopted it quickly and the impact was immediate.",
+    id: "3",
+    name: "John Fulton",
+    avatar: "/images/avatar3.png",
+    quote:
+      "This HR management platform has been a game-changer for our organization. Before we switched, our HR processes were fragmented and time-consuming. Performance management is seamlessly integrated.",
   },
 ];
 
-const swipePower = (offset: number, velocity: number) => Math.abs(offset) * velocity;
+function StoryCard({ s }: { s: Story }) {
+  return (
+    <article
+      className={cn(
+        "relative w-[340px] shrink-0 rounded-[18px] bg-white",
+        "px-6 py-6 shadow-[0_14px_28px_rgba(0,0,0,0.18)]"
+      )}
+    >
+      {/* close icon bubble (as in figma) */}
+      <div className="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-[#F2E8FF] shadow-[0_10px_20px_rgba(0,0,0,0.14)]">
+        <span className="text-[18px] leading-none text-[#D6B000]">×</span>
+      </div>
 
+      {/* header */}
+      <div className="flex items-center gap-3">
+        <div className="h-10 w-10 overflow-hidden rounded-full bg-[#F2E8FF]">
+          {s.avatar ? (
+            <Image
+              src={s.avatar}
+              alt={s.name}
+              width={40}
+              height={40}
+              className="h-full w-full object-cover"
+            />
+          ) : null}
+        </div>
+        <div className="min-w-0">
+          <p className="truncate text-[15px] font-semibold text-[#7F289A]">
+            {s.name}
+          </p>
+          <div className="mt-1 h-px w-[120px] bg-black/10" />
+        </div>
+      </div>
+
+      {/* quote */}
+      <p className="mt-5 text-[18px] leading-[1.15] text-[#7F289A]">
+        <span className="mr-2 align-top text-[26px] leading-none">“</span>
+        {s.quote}
+        <span className="ml-1 align-bottom text-[26px] leading-none">”</span>
+      </p>
+    </article>
+  );
+}
+
+/**
+ * SuccessStoriesSection
+ * - auto scrolls to LEFT
+ * - pauses on hover
+ */
 export default function SuccessStoriesSection() {
-  const [index, setIndex] = useState(0);
-  const total = testimonials.length;
-
-  const current = useMemo(() => testimonials[index], [index]);
-
-  const goNext = () => setIndex((v) => (v + 1) % total);
-  const goPrev = () => setIndex((v) => (v - 1 + total) % total);
+  const loop = useMemo(() => [...stories, ...stories], []);
 
   return (
-    <section className="bg-[var(--purple)] py-20 md:py-24">
-      <div className="mx-auto max-w-6xl px-4">
+    <section className="w-full bg-[#D8B9FF]">
+      <div className="mx-auto max-w-6xl px-4 py-14">
+        {/* Heading */}
         <div className="text-center">
-          <h2 className="font-display text-3xl font-semibold text-white md:text-5xl">
-            Success Stories & Real Results
+          <h2 className="font-display text-[34px] font-semibold text-black md:text-[40px]">
+            Success Stories &amp; Real Results
           </h2>
-          <p className="font-display mt-4 text-lg font-semibold text-white/60 md:text-3xl">
+          <p className="mt-3 text-[16px] font-semibold text-[#6F2AA7] md:text-[18px]">
             See What Our Clients Say and Discover Our Impactful Work
           </p>
         </div>
 
-        <div className="mt-14 grid gap-8 md:grid-cols-2 md:items-start">
-          {/* LEFT: page-curl stack */}
-          <div className="relative">
-            {/* back page (always visible behind) */}
-            <div className="absolute left-2 top-2 h-full w-full rounded-[22px] bg-white/10 blur-[0.2px]" />
-            <div className="absolute left-4 top-4 h-full w-full rounded-[22px] bg-white/5" />
+        {/* Marquee */}
+        <div className="mt-10">
+          {/* viewport */}
+          <div
+            className={cn(
+              "group relative overflow-hidden",
+              "py-4"
+            )}
+          >
+            {/* fade edges */}
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-[#D8B9FF] to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[#D8B9FF] to-transparent" />
 
-            <AnimatePresence mode="wait">
-              <PageTurnCard
-                key={index}
-                data={current}
-                index={index}
-                total={total}
-                onNext={goNext}
-                onPrev={goPrev}
-              />
-            </AnimatePresence>
+            {/* track */}
+            <div
+              className={cn(
+                "flex w-max gap-10",
+                "animate-[marquee-left_18s_linear_infinite]",
+                "group-hover:[animation-play-state:paused]"
+              )}
+            >
+              {loop.map((s, idx) => (
+                <StoryCard key={`${s.id}-${idx}`} s={s} />
+              ))}
+            </div>
           </div>
-
-          {/* RIGHT: use your component */}
-          <PortfolioCard />
         </div>
+
+        {/* keyframes */}
+        <style jsx>{`
+          @keyframes marquee-left {
+            0% {
+              transform: translateX(0);
+            }
+            100% {
+              transform: translateX(-50%);
+            }
+          }
+        `}</style>
       </div>
     </section>
-  );
-}
-
-function PageTurnCard({
-  data,
-  index,
-  total,
-  onNext,
-  onPrev,
-}: {
-  data: Testimonial;
-  index: number;
-  total: number;
-  onNext: () => void;
-  onPrev: () => void;
-}) {
-  return (
-    <motion.div
-      className="relative rounded-[22px] bg-[#D9C4FF] p-6 shadow-[0_18px_45px_rgba(0,0,0,0.18)]"
-      style={{ transformStyle: "preserve-3d", perspective: 1200 }}
-      initial={{ opacity: 0, rotateY: -25, x: -18 }}
-      animate={{ opacity: 1, rotateY: 0, x: 0 }}
-      exit={{ opacity: 0, rotateY: 25, x: 18 }}
-      transition={{ duration: 0.55, ease: "easeOut" }}
-      drag="x"
-      dragConstraints={{ left: 0, right: 0 }}
-      dragElastic={0.18}
-      onDragEnd={(_, info) => {
-        const power = swipePower(info.offset.x, info.velocity.x);
-        if (power > 12000) {
-          if (info.offset.x > 0) onPrev();
-          else onNext();
-        }
-      }}
-    >
-      {/* header row */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-white/40 ring-1 ring-white/30" />
-          <div className="leading-tight">
-            <p className="text-sm font-semibold text-[var(--purple)]">{data.name}</p>
-            <p className="text-xs text-[var(--purple)]/70">{data.role}</p>
-          </div>
-        </div>
-
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/25 ring-1 ring-white/25">
-          <span className="text-[var(--purple)]/80">×</span>
-        </div>
-      </div>
-
-      {/* body */}
-      <p className="mt-5 text-[15px] leading-6 text-[var(--purple)]/80">
-        “{data.text}”
-      </p>
-
-      {/* swipe indicator */}
-      <div className="mt-6 flex justify-end">
-        <button
-          type="button"
-          onClick={onNext}
-          className="rounded-full border border-[var(--purple)]/25 bg-white/15 px-4 py-1 text-xs font-semibold text-[var(--purple)]/80 hover:bg-white/20"
-        >
-          Swipe {index + 1}/{total} →
-        </button>
-      </div>
-
-      {/* Page-curl corner (stronger) */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute bottom-0 right-0 h-28 w-28 rounded-bl-[70px]"
-        style={{
-          background:
-            "conic-gradient(from 225deg, rgba(255,255,255,0.75), rgba(255,255,255,0) 55%)",
-        }}
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute bottom-0 right-0 h-28 w-28 rounded-tl-[50px]"
-        style={{
-          boxShadow: "-16px -16px 30px rgba(0,0,0,0.08)",
-          opacity: 0.55,
-        }}
-      />
-    </motion.div>
   );
 }

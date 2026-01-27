@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 
 export default function Hero() {
   return (
-    <section className="relative overflow-hidden bg-[var(--bg-soft)]">
+    <section className="mt-8 relative overflow-hidden bg-[var(--bg-soft)]">
       {/* TEXT */}
       <div className="mx-auto max-w-6xl px-4 pt-14 md:pt-16">
         <div className="text-center">
