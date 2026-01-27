@@ -65,11 +65,6 @@ export default function Navbar() {
     else setHidden(false);
   });
 
-  // close mobile menu on route change
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [pathname]);
-
   const activeLabel = useMemo(() => {
     const found = navLinks.find((l) => isRouteActive(pathname, l.href));
     return found?.label ?? "Menu";
@@ -189,6 +184,7 @@ export default function Navbar() {
                         <Link
                           key={l.href}
                           href={l.href}
+                          onClick={() => setMobileOpen(false)}
                           className={cn(
                             "flex items-center justify-between px-5 py-4 text-sm font-medium",
                             "transition-colors",
