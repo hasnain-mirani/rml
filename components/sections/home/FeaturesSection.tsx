@@ -2,16 +2,48 @@
 
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
+import {
+  motion,
+  AnimatePresence,
+  useReducedMotion,
+} from "framer-motion";
 
 type PanelKey = "scale" | "innovate" | null;
 
-export default function FeatureSection() {
+const content = {
+  scale: {
+    eyebrow: "For teams ready to grow",
+    title: "Scale with Us",
+    desc: "Go from prototype → production. Build resilient systems, ship faster, and keep costs predictable.",
+    points: [
+      "Production-grade AI architecture",
+      "Infrastructure & deployment optimization",
+      "Evaluation, monitoring & governance",
+      "Long-term engineering partnership",
+    ],
+    cta: "Scale Up Your Product",
+  },
+  innovate: {
+    eyebrow: "For founders & domain experts",
+    title: "Innovate with Us",
+    desc: "Bring the problem. We co-design the solution with research-grade engineering and rapid iteration.",
+    points: [
+      "Problem framing & AI feasibility",
+      "Rapid prototyping & validation",
+      "System design + data strategy",
+      "Launch support & iteration loop",
+    ],
+    cta: "Become a Co-Founder",
+  },
+};
+
+export default function FeaturesSection() {
+  const reduce = useReducedMotion();
   const [open, setOpen] = useState<PanelKey>(null);
 
   const isScale = open === "scale";
   const isInnovate = open === "innovate";
 
-  // ✅ hover on desktop, click on mobile/touch
   const handlers = useMemo(
     () => ({
       onLeave: () => setOpen(null),
@@ -24,167 +56,250 @@ export default function FeatureSection() {
   );
 
   return (
-    <section className="w-full bg-white">
-      <div className="mx-auto max-w-6xl px-4 py-10 md:py-14">
+    <section className="relative w-full bg-white">
+      {/* soft background */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 bg-[radial-gradient(1200px_600px_at_30%_10%,rgba(111,42,167,0.10),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(900px_500px_at_70%_40%,rgba(0,0,0,0.06),transparent_60%)]" />
+      </div>
+
+      <div className="relative mx-auto max-w-6xl px-4 py-14 md:py-20">
+        {/* heading */}
+        <div className="mx-auto max-w-3xl text-center">
+          <p className="text-xs font-medium tracking-[0.22em] text-black/55">
+            PATHS WE OFFER
+          </p>
+          <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight text-black md:text-5xl">
+            Choose the way you want to build
+          </h2>
+          <p className="mt-4 text-sm leading-relaxed text-black/60 md:text-base">
+            Two engagement modes — both designed to deliver real outcomes with clear milestones.
+          </p>
+        </div>
+
+        {/* main card */}
         <div
-          className="relative overflow-hidden rounded-[10px]"
+          className="relative mt-10 overflow-hidden rounded-3xl border border-black/10 bg-white/70 shadow-[0_25px_80px_rgba(0,0,0,0.10)] backdrop-blur-xl"
           onMouseLeave={handlers.onLeave}
         >
-          {/* ✅ Background split with diagonal */}
-          <div className="relative h-[420px] md:h-[460px]">
-            <div className="absolute inset-0 bg-[#F3ECFF]" />
-            <div
-              className="absolute inset-0 bg-[#D8B9FF]"
-              style={{ clipPath: "polygon(58% 0, 100% 0, 100% 100%, 42% 100%)" }}
+          {/* top sheen */}
+          {!reduce && (
+            <motion.div
+              aria-hidden="true"
+              className="pointer-events-none absolute -left-1/3 top-0 h-full w-1/3 rotate-12 bg-black/5 blur-2xl"
+              animate={{ x: ["-25%", "420%"] }}
+              transition={{ duration: 5, repeat: Infinity, repeatDelay: 2.5, ease: "easeInOut" }}
             />
+          )}
 
-            {/* Left base heading */}
-            <div className="absolute inset-0 flex">
-              <button
-                type="button"
-                onMouseEnter={handlers.onScaleEnter}
-                onFocus={handlers.onScaleEnter}
-                onClick={handlers.onScaleClick}
-                className={cn(
-                  "relative h-full w-1/2 text-left outline-none",
-                  "px-8 md:px-12",
-                  "transition-opacity duration-200",
-                  open && !isScale ? "opacity-60" : "opacity-100"
-                )}
-              >
-                <div className="flex h-full flex-col justify-center">
-                  <h3 className="font-display text-[38px] leading-[1.05] text-[#6F2AA7] md:text-[46px]">
-                    Scale with Us
-                  </h3>
-                  <p className="mt-4 max-w-[340px] text-[15px] text-[#6F2AA7]/80 md:text-[16px]">
-                    Cross the threshold from prototype to scale
-                  </p>
-                </div>
-
-                {/* subtle hover hint */}
-                <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-black/5 to-transparent" />
-              </button>
-
-              {/* Right base heading */}
-              <button
-                type="button"
-                onMouseEnter={handlers.onInnovateEnter}
-                onFocus={handlers.onInnovateEnter}
-                onClick={handlers.onInnovateClick}
-                className={cn(
-                  "relative h-full w-1/2 text-left outline-none",
-                  "px-8 md:px-12",
-                  "transition-opacity duration-200",
-                  open && !isInnovate ? "opacity-60" : "opacity-100"
-                )}
-              >
-                <div className="flex h-full flex-col justify-center">
-                  <h3 className="font-display text-[34px] leading-[1.05] text-[#1A0F24] md:text-[44px]">
-                    Innovate with Us
-                  </h3>
-                  <p className="mt-4 max-w-[340px] text-[15px] text-[#1A0F24]/70 md:text-[16px]">
-                    You bring the problem we engineer the solution
-                  </p>
-                </div>
-
-                <div className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-black/5 to-transparent" />
-              </button>
-            </div>
-
-            {/* ✅ Modal-like hover panels */}
-            <div
+          {/* split grid */}
+          <div className="grid min-h-[520px] grid-cols-1 md:grid-cols-2">
+            {/* SCALE */}
+            <button
+              type="button"
+              onMouseEnter={handlers.onScaleEnter}
+              onFocus={handlers.onScaleEnter}
+              onClick={handlers.onScaleClick}
               className={cn(
-                "pointer-events-none absolute inset-0 flex items-center justify-center",
+                "group relative text-left outline-none",
+                "p-8 md:p-10",
                 "transition-opacity duration-200",
-                open ? "opacity-100" : "opacity-0"
+                open && !isScale ? "opacity-60" : "opacity-100"
               )}
-              aria-hidden={!open}
             >
-              {/* SCALE PANEL (matches 3rd screenshot vibe) */}
-              <div
-                className={cn(
-                  "pointer-events-auto absolute left-[8%] right-[8%] md:left-[7%] md:right-[50%]",
-                  "top-1/2 -translate-y-1/2",
-                  "transition-all duration-200 ease-out",
-                  isScale ? "translate-x-0 opacity-100" : "-translate-x-4 opacity-0"
-                )}
-              >
-                <div className="rounded-[16px] bg-transparent p-0">
-                  <div className="flex flex-col items-center text-center">
-                    <h4 className="font-display text-[30px] text-[#6F2AA7] md:text-[34px]">
-                      Scale with Us
-                    </h4>
-                    <p className="mt-2 text-[14px] text-[#6F2AA7]/75 md:text-[15px]">
-                      Cross the threshold from prototype to scale
-                    </p>
+              {/* gradient panel */}
+              <div className="absolute inset-0 bg-[radial-gradient(900px_500px_at_40%_20%,rgba(111,42,167,0.18),transparent_60%)]" />
+              <div className="absolute inset-0 bg-gradient-to-br from-[#F6EEFF] via-white to-white" />
 
-                    <div className="mt-5 w-full max-w-[320px] rounded-full bg-[#6F2AA7] px-6 py-3 text-[12px] font-medium text-white shadow-[0_10px_22px_rgba(0,0,0,0.18)] md:text-[13px]">
-                      SCALE UP YOUR ENTERPRISE
-                    </div>
+              <div className="relative">
+                <p className="text-xs font-medium tracking-[0.18em] text-[#6F2AA7]/70">
+                  {content.scale.eyebrow}
+                </p>
+                <h3 className="mt-3 font-display text-3xl font-semibold leading-[1.1] text-[#6F2AA7] md:text-4xl">
+                  {content.scale.title}
+                </h3>
+                <p className="mt-4 max-w-[420px] text-sm leading-relaxed text-black/60 md:text-base">
+                  {content.scale.desc}
+                </p>
 
-                    <div className="mt-4 w-full max-w-[520px] rounded-[14px] bg-[#6F2AA7] px-6 py-4 text-[13px] text-white shadow-[0_12px_24px_rgba(0,0,0,0.18)] md:text-[14px]">
-                      You are already, a startup or have a developed product with an interesting idea
-                    </div>
+                {/* micro tag row */}
+                <div className="mt-6 flex flex-wrap gap-2">
+                  <Tag tone="purple">Architecture</Tag>
+                  <Tag tone="purple">Deployment</Tag>
+                  <Tag tone="purple">Reliability</Tag>
+                </div>
 
-                    <div className="mt-4 w-full max-w-[520px] rounded-[16px] bg-[#6F2AA7] px-6 py-5 text-left text-[13px] text-white shadow-[0_14px_28px_rgba(0,0,0,0.20)] md:text-[14px]">
-                      <p className="mb-2 font-medium">
-                        We provide long-term support and skilled resources:
-                      </p>
-                      <ul className="list-disc space-y-1 pl-5 text-white/95">
-                        <li>AI and systems architecture designed for scale</li>
-                        <li>Cloud and infrastructure optimization</li>
-                        <li>Cost-efficient model deployment</li>
-                        <li>Reliability, evaluation, and governance frameworks</li>
-                      </ul>
-                    </div>
-                  </div>
+                {/* hint */}
+                <div className="mt-10 inline-flex items-center gap-2 text-sm font-medium text-[#6F2AA7]">
+                  <span className="opacity-80 group-hover:opacity-100">
+                    {isScale ? "Viewing details" : "Hover / Tap to view details"}
+                  </span>
+                  <span className="inline-block h-[10px] w-[10px] rounded-full bg-[#6F2AA7]/25 group-hover:bg-[#6F2AA7]/40" />
                 </div>
               </div>
+            </button>
 
-              {/* INNOVATE PANEL (matches 2nd screenshot vibe) */}
-              <div
-                className={cn(
-                  "pointer-events-auto absolute left-[8%] right-[8%] md:left-[50%] md:right-[7%]",
-                  "top-1/2 -translate-y-1/2",
-                  "transition-all duration-200 ease-out",
-                  isInnovate ? "translate-x-0 opacity-100" : "translate-x-4 opacity-0"
-                )}
-              >
-                <div className="flex flex-col items-center text-center">
-                  <h4 className="font-display text-[30px] text-[#1A0F24] md:text-[36px]">
-                    Innovate with Us
-                  </h4>
-                  <p className="mt-2 text-[14px] text-[#1A0F24]/70 md:text-[15px]">
-                    You bring the problem we engineer the solution
-                  </p>
-
-                  <div className="mt-5 w-full max-w-[320px] rounded-full bg-white px-6 py-3 text-[12px] font-medium text-[#1A0F24] shadow-[0_10px_22px_rgba(0,0,0,0.18)] md:text-[13px]">
-                    BECOME A CO-FOUNDER
-                  </div>
-
-                  <div className="mt-5 w-full max-w-[560px] rounded-[14px] bg-white px-6 py-4 text-[13px] text-[#1A0F24]/80 shadow-[0_12px_24px_rgba(0,0,0,0.18)] md:text-[14px]">
-                    You are a domain expert with a sharp insight into a real, high-stakes problem.
-                    You bring the idea, we bring the technical expertise.
-                  </div>
-
-                  <div className="mt-4 w-full max-w-[560px] rounded-[14px] bg-white px-6 py-4 text-[13px] text-[#1A0F24]/80 shadow-[0_12px_24px_rgba(0,0,0,0.18)] md:text-[14px]">
-                    We bring the Deep AI engineering expertise, System architecture knowledge and
-                    infrastructure design
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* ✅ click-outside feel (optional): dim overlay when panel open */}
-            <div
+            {/* INNOVATE */}
+            <button
+              type="button"
+              onMouseEnter={handlers.onInnovateEnter}
+              onFocus={handlers.onInnovateEnter}
+              onClick={handlers.onInnovateClick}
               className={cn(
-                "pointer-events-none absolute inset-0 bg-black/0 transition-colors duration-200",
-                open ? "bg-black/5" : "bg-black/0"
+                "group relative text-left outline-none",
+                "p-8 md:p-10",
+                "transition-opacity duration-200",
+                open && !isInnovate ? "opacity-60" : "opacity-100"
               )}
-            />
+            >
+              <div className="absolute inset-0 bg-[radial-gradient(900px_500px_at_60%_30%,rgba(0,0,0,0.12),transparent_60%)]" />
+              <div className="absolute inset-0 bg-gradient-to-br from-[#F7F7F7] via-white to-white" />
+
+              <div className="relative">
+                <p className="text-xs font-medium tracking-[0.18em] text-black/55">
+                  {content.innovate.eyebrow}
+                </p>
+                <h3 className="mt-3 font-display text-3xl font-semibold leading-[1.1] text-black md:text-4xl">
+                  {content.innovate.title}
+                </h3>
+                <p className="mt-4 max-w-[420px] text-sm leading-relaxed text-black/60 md:text-base">
+                  {content.innovate.desc}
+                </p>
+
+                <div className="mt-6 flex flex-wrap gap-2">
+                  <Tag tone="dark">Discovery</Tag>
+                  <Tag tone="dark">Prototype</Tag>
+                  <Tag tone="dark">Launch</Tag>
+                </div>
+
+                <div className="mt-10 inline-flex items-center gap-2 text-sm font-medium text-black">
+                  <span className="opacity-70 group-hover:opacity-100">
+                    {isInnovate ? "Viewing details" : "Hover / Tap to view details"}
+                  </span>
+                  <span className="inline-block h-[10px] w-[10px] rounded-full bg-black/15 group-hover:bg-black/25" />
+                </div>
+              </div>
+            </button>
           </div>
+
+          {/* overlay details drawer */}
+          <AnimatePresence>
+            {open && (
+              <motion.div
+                key="drawer"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: reduce ? 0 : 0.18 }}
+                className="pointer-events-none absolute inset-0"
+              >
+                {/* dim */}
+                <div className="absolute inset-0 bg-black/6" />
+
+                {/* drawer card */}
+                <motion.div
+                  initial={{ opacity: 0, y: 18, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 18, scale: 0.98 }}
+                  transition={{ duration: reduce ? 0 : 0.22, ease: [0.16, 1, 0.3, 1] }}
+                  className={cn(
+                    "pointer-events-auto absolute left-4 right-4 top-1/2 -translate-y-1/2",
+                    "mx-auto max-w-3xl",
+                    "rounded-3xl border border-black/10 bg-white/80 backdrop-blur-xl",
+                    "shadow-[0_30px_90px_rgba(0,0,0,0.18)]"
+                  )}
+                >
+                  <div className="p-6 md:p-8">
+                    <div className="flex items-start justify-between gap-6">
+                      <div>
+                        <p
+                          className={cn(
+                            "text-xs font-medium tracking-[0.22em]",
+                            open === "scale" ? "text-[#6F2AA7]/80" : "text-black/60"
+                          )}
+                        >
+                          DETAILS
+                        </p>
+                        <h4
+                          className={cn(
+                            "mt-2 font-display text-2xl font-semibold md:text-3xl",
+                            open === "scale" ? "text-[#6F2AA7]" : "text-black"
+                          )}
+                        >
+                          {open === "scale" ? content.scale.title : content.innovate.title}
+                        </h4>
+                        <p className="mt-3 text-sm leading-relaxed text-black/60 md:text-base">
+                          {open === "scale" ? content.scale.desc : content.innovate.desc}
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setOpen(null)}
+                        className="rounded-full border border-black/10 bg-white/70 px-3 py-1 text-sm text-black/70 shadow-sm backdrop-blur transition hover:bg-white"
+                        aria-label="Close details"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    <div className="mt-6 grid gap-3 md:grid-cols-2">
+                      {(open === "scale" ? content.scale.points : content.innovate.points).map(
+                        (t) => (
+                          <div
+                            key={t}
+                            className="rounded-2xl border border-black/10 bg-white/70 px-4 py-3 text-sm text-black/70"
+                          >
+                            <span className="mr-2 inline-block h-2 w-2 rounded-full bg-black/20" />
+                            {t}
+                          </div>
+                        )
+                      )}
+                    </div>
+
+                    <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="text-xs text-black/50">
+                        Tip: on desktop hover; on mobile tap.
+                      </div>
+
+                      <button
+                        type="button"
+                        className={cn(
+                          "inline-flex h-11 items-center justify-center rounded-full px-6 text-sm font-medium",
+                          open === "scale"
+                            ? "bg-[#6F2AA7] text-white shadow-[0_18px_45px_rgba(111,42,167,0.30)] hover:opacity-95"
+                            : "bg-black text-white shadow-[0_18px_45px_rgba(0,0,0,0.22)] hover:opacity-95",
+                          "transition active:translate-y-[1px]"
+                        )}
+                      >
+                        {open === "scale" ? content.scale.cta : content.innovate.cta}
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* bottom divider line */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-black/10" />
         </div>
       </div>
     </section>
+  );
+}
+
+function Tag({ children, tone }: { children: React.ReactNode; tone: "purple" | "dark" }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-medium tracking-wide",
+        tone === "purple"
+          ? "border-[#6F2AA7]/20 bg-[#6F2AA7]/10 text-[#6F2AA7]"
+          : "border-black/10 bg-black/5 text-black/70"
+      )}
+    >
+      {children}
+    </span>
   );
 }
