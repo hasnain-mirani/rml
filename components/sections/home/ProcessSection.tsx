@@ -1,5 +1,5 @@
 "use client";
-
+import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -26,6 +26,7 @@ const content = {
 };
 
 export default function ProcessSection() {
+
   const reduce = useReducedMotion();
 
   const ease = [0.16, 1, 0.3, 1] as const;
@@ -74,17 +75,20 @@ export default function ProcessSection() {
             </p>
 
             <div className="mt-9 flex flex-wrap items-center gap-3">
-              <Button
-                className={cn(
-                  "h-11 rounded-full px-8",
-                  "bg-[#6F2AA7] text-white",
-                  "shadow-[0_16px_48px_rgba(111,42,167,0.28)]",
-                  "transition hover:opacity-95 active:translate-y-[1px]"
-                )}
-              >
-                Learn how we work
-              </Button>
+          
+  <Link href="/our-story">
+     <Button
 
+  className={cn(
+    "h-11 rounded-full px-8",
+    "bg-[#6F2AA7] text-white",
+    "shadow-[0_16px_48px_rgba(111,42,167,0.28)]",
+    "transition hover:opacity-95 active:translate-y-[1px]"
+  )}
+>
+  Learn how we work
+</Button>
+  </Link>
               <div className="text-xs text-black/45">
                 Built for production, not prototypes.
               </div>

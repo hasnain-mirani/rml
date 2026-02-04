@@ -1,9 +1,22 @@
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function ServicesHero() {
   return (
     <section className="pt-8 relative overflow-hidden bg-[var(--bg-soft)]">
+      <div className="relative mx-auto max-w-6xl px-4 pt-16 md:pt-20">
+        {/* ✅ Back button */}
+        <div className="mb-6">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-sm font-medium text-[var(--purple)] transition hover:opacity-80"
+          >
+            <span className="text-lg">←</span>
+            Back to Home Page
+          </Link>
+        </div>
+        </div>
       {/* TEXT */}
       <div className="mx-auto max-w-6xl px-4 pt-14 md:pt-16">
         <div className="text-center">

@@ -8,24 +8,14 @@ import {
   useTransform,
   useSpring,
 } from "framer-motion";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useLayoutEffect } from "react";
 import { cn } from "@/lib/utils";
-
 import ProcessSection from "./ProcessSection";
 import FeaturesSection from "./FeaturesSection";
 import SuccessStoriesSection from "./SuccessStoriesSection";
 import CTASection from "./CTASection";
 import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/Navbar";
-
-/**
- * ✅ FIXED: no blank bg on slide 2 + more "Goonies" feel
- * - Hard background layer per slide (prevents flash / blank area)
- * - Wheel paging (story feel)
- * - Cinematic overlay transition
- * - Dots + progress bar
- * - Hero with richer layered motion + floating chips + arrow restored
- */
 
 type SectionDef = { id: string; node: React.ReactNode; bg: string };
 
@@ -36,18 +26,17 @@ function clamp(n: number, min: number, max: number) {
 export default function FullpageHome() {
   const sections: SectionDef[] = useMemo(
     () => [
-      { id: "hero", node: <HeroSlide />, bg: "bg-[var(--bg-soft)]" },
-      { id: "process", node: <ProcessSection  />, bg: "bg-[var(--purple)]" },
+      { id: "hero", node: <HeroSlide />, bg: "bg-transparent" }, // hero draws its bg
+      { id: "process", node: <ProcessSection />, bg: "bg-[var(--purple)]" },
       { id: "features", node: <FeaturesSection />, bg: "bg-white" },
       { id: "stories", node: <SuccessStoriesSection />, bg: "bg-white" },
       { id: "cta", node: <CTASection />, bg: "bg-white" },
       { id: "footer", node: <Footer />, bg: "bg-white" },
     ],
-    []
+    [],
   );
 
   const containerRef = useRef<HTMLDivElement | null>(null);
-
 
   const [active, setActive] = useState(0);
   const [leaving, setLeaving] = useState<number | null>(null);
@@ -74,11 +63,9 @@ export default function FullpageHome() {
     if (nextIdx === active || lockRef.current) return;
 
     lockRef.current = true;
-
     setLeaving(active);
     setEntering(nextIdx);
     setActive(nextIdx);
-
     setHash(sections[nextIdx].id);
     scrollToIndex(nextIdx);
 
@@ -109,7 +96,7 @@ export default function FullpageHome() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // sync active on manual scroll (trackpad)
+  // sync active on manual scroll
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -146,17 +133,15 @@ export default function FullpageHome() {
     return () => window.removeEventListener("keydown", onKey);
   }, [active]);
 
-  // ✅ Wheel paging (Webflow/story feel)
+  // wheel paging
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-
     let acc = 0;
     let t: number | null = null;
 
     const onWheel = (e: WheelEvent) => {
       if (lockRef.current) return;
-
       e.preventDefault();
       acc += e.deltaY;
 
@@ -200,8 +185,7 @@ export default function FullpageHome() {
       const dy = t.clientY - sy;
 
       if (Math.abs(dy) < 55 || Math.abs(dy) < Math.abs(dx)) return;
-      if (dy < 0) next();
-      else prev();
+      dy < 0 ? next() : prev();
     };
 
     el.addEventListener("touchstart", onStart, { passive: true });
@@ -220,7 +204,8 @@ export default function FullpageHome() {
 
   return (
     <>
-    <Navbar scrollContainerRef={containerRef} />
+      <Navbar scrollContainerRef={containerRef} />
+
       {/* dots + progress */}
       <div className="pointer-events-none fixed left-6 top-1/2 z-[60] hidden -translate-y-1/2 md:block">
         <div className="flex flex-col items-center gap-3">
@@ -237,7 +222,9 @@ export default function FullpageHome() {
                 <div
                   className={cn(
                     "h-2.5 w-2.5 rounded-full transition-all duration-200",
-                    isOn ? "bg-[var(--purple)] scale-110" : "bg-black/20 hover:bg-black/30"
+                    isOn
+                      ? "bg-[var(--purple)] scale-110"
+                      : "bg-black/20 hover:bg-black/30",
                   )}
                 />
               </button>
@@ -255,9 +242,9 @@ export default function FullpageHome() {
       <div
         ref={containerRef}
         className={cn(
-          "h-screen w-full overflow-y-auto",
+          "min-h-[100svh] md:h-screen w-full overflow-y-auto",
           "scroll-smooth overscroll-none",
-          "bg-[var(--bg-soft)]"
+          "bg-[var(--bg-soft)]",
         )}
         style={{ WebkitOverflowScrolling: "touch" }}
       >
@@ -269,13 +256,13 @@ export default function FullpageHome() {
             <div
               key={s.id}
               data-slide={s.id}
-              className="relative h-screen w-full overflow-hidden"
-              style={{ minHeight: "100vh" }}
+              className={cn(
+                "relative w-full overflow-hidden",
+                "min-h-[100svh] md:h-screen",
+              )}
             >
-              {/* ✅ HARD background per slide (fixes blank bg on slide 2) */}
               <div className={cn("absolute inset-0 -z-10", s.bg)} />
 
-              {/* transition overlay */}
               {isLeaving && (
                 <motion.div
                   className="pointer-events-none absolute inset-0 z-30"
@@ -304,8 +291,12 @@ export default function FullpageHome() {
                 {idx === 0 ? <HeroSlide onNext={next} /> : s.node}
               </motion.div>
 
-              {/* ✅ hard seal */}
-              <div className={cn("pointer-events-none absolute bottom-0 left-0 right-0 h-[2px]", s.bg)} />
+              <div
+                className={cn(
+                  "pointer-events-none absolute bottom-0 left-0 right-0 h-[2px]",
+                  s.bg,
+                )}
+              />
             </div>
           );
         })}
@@ -315,235 +306,196 @@ export default function FullpageHome() {
 }
 
 /* =========================
-   HERO SLIDE — animated elements like ref
+   HERO SLIDE — SINGLE precise wave (/images/hero-waves.png)
    ========================= */
 
 function HeroSlide({ onNext }: { onNext?: () => void }) {
   const reduce = useReducedMotion();
-  const heroRef = useRef<HTMLElement | null>(null);
 
+  const heroRef = useRef<HTMLElement | null>(null);
+  const titleWrapRef = useRef<HTMLDivElement | null>(null);
+  const [waveTop, setWaveTop] = useState<number>(0);
+
+  // Text/icon motion (unchanged)
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ["start start", "end start"],
   });
+  const titleY = useTransform(scrollYProgress, [0, 1], [0, reduce ? 0 : -8]);
+  const centerY = useTransform(scrollYProgress, [0, 1], [0, reduce ? 0 : -6]);
+  const sideY = useTransform(scrollYProgress, [0, 1], [0, reduce ? 0 : -4]);
+  const floatY = reduce ? 0 : [0, -10, 0];
 
-  const wavesY = useTransform(scrollYProgress, [0, 1], [0, reduce ? 0 : -40]);
-  const centerY = useTransform(scrollYProgress, [0, 1], [0, reduce ? 0 : -75]);
-  const sideY = useTransform(scrollYProgress, [0, 1], [0, reduce ? 0 : -55]);
-  const titleY = useTransform(scrollYProgress, [0, 1], [0, reduce ? 0 : -18]);
+  // Precisely position wave BELOW headline using real layout
+  useLayoutEffect(() => {
+    function positionWave() {
+      const hero = heroRef.current;
+      const title = titleWrapRef.current;
+      if (!hero || !title) return;
+
+      const heroRect = hero.getBoundingClientRect();
+      const titleRect = title.getBoundingClientRect();
+
+      const heroTop = window.scrollY + heroRect.top;
+      const titleBottom = window.scrollY + titleRect.bottom;
+
+      const withinHeroY = titleBottom - heroTop;
+      const GAP = 28; // distance from headline to wave (px). Tweak to taste.
+      setWaveTop(Math.max(0, Math.round(withinHeroY + GAP)));
+    }
+
+    positionWave();
+
+    // React to headline size changes & viewport changes
+    const ro = new ResizeObserver(positionWave);
+    if (titleWrapRef.current) ro.observe(titleWrapRef.current);
+    window.addEventListener("resize", positionWave);
+
+    // Re-run after fonts load (headings change height)
+    if ((document as any).fonts?.ready) {
+      (document as any).fonts.ready.then(positionWave).catch(() => {});
+    }
+
+    return () => {
+      window.removeEventListener("resize", positionWave);
+      ro.disconnect();
+    };
+  }, []);
 
   return (
     <section
       ref={(el) => (heroRef.current = el)}
-      className="relative h-screen w-full overflow-hidden bg-[var(--bg-soft)]"
+      className="relative min-h-[100svh] md:h-screen overflow-hidden bg-[#F5EFFF]"
     >
-      {/* cinematic background */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(1000px_520px_at_50%_0%,rgba(111,42,167,0.15),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(900px_520px_at_20%_45%,rgba(0,0,0,0.06),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0)_0%,rgba(0,0,0,0.05)_55%,rgba(0,0,0,0.10)_100%)]" />
+      {/* HEADLINE we measure */}
+      <div
+        ref={titleWrapRef}
+        className="relative z-[2] mx-auto max-w-6xl px-4 pt-24 md:pt-28 text-center"
+      >
+        <motion.p
+          style={{ y: titleY }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="font-display text-[38px] sm:text-[44px] md:text-[54px] tracking-[0.06em] text-[var(--purple)] inline-block border-t border-[var(--purple)]/40 pt-4"
+        >
+          RevelationML
+        </motion.p>
+
+        <motion.h1
+          style={{ y: titleY }}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1], delay: 0.05 }}
+          className="mt-4 font-display text-[42px] sm:text-[56px] md:text-[78px] font-semibold leading-[1.05] text-[var(--purple)]"
+        >
+          Unlocking Value
+          <br />
+          Through AI Integration
+        </motion.h1>
       </div>
 
-      {/* subtle moving lights (ref vibe) */}
-      {!reduce && (
-        <>
-          <motion.div
-            className="pointer-events-none absolute -left-28 top-24 h-[420px] w-[420px] rounded-full bg-[var(--purple)]/10 blur-3xl"
-            animate={{ x: [0, 24, 0], y: [0, 18, 0] }}
-            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+      {/* WAVE — single image, positioned precisely under headline */}
+      <div
+        className="pointer-events-none absolute left-1/2 z-[1] -translate-x-1/2"
+        style={{
+          top: waveTop,
+          width: "min(2000px, 170vw)",     // full-bleed without over-stretch
+          aspectRatio: "2000 / 560",       // keep the original curve ratio of your asset
+        }}
+      >
+        <div className="relative h-full w-full">
+          <Image
+            src="/images/hero-waves.png"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-center"
           />
-          <motion.div
-            className="pointer-events-none absolute -right-40 top-40 h-[520px] w-[520px] rounded-full bg-black/10 blur-3xl"
-            animate={{ x: [0, -20, 0], y: [0, -16, 0] }}
-            transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
-          />
-        </>
-      )}
-
-      {/* TEXT */}
-      <div className="mx-auto max-w-6xl px-4 pt-20 md:pt-24">
-        <div className="text-center">
-          <motion.p
-            style={{ y: titleY }}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="font-display mt-8 text-[22px] tracking-wide text-[var(--purple)] md:text-[32px]"
-          >
-            RevelationML
-          </motion.p>
-
-          <motion.h1
-            style={{ y: titleY }}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1], delay: 0.05 }}
-            className="mt-5 font-display text-[40px] font-semibold leading-[1.10] text-[var(--purple)] md:text-[68px]"
-          >
-            Unlocking Value <br className="hidden md:block" />
-            Through AI Integration
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1], delay: 0.12 }}
-            className="mx-auto mt-6 max-w-2xl text-sm leading-relaxed text-black/55 md:text-base"
-          >
-            Design, deploy, and scale production-grade AI systems — with clarity, speed, and durable outcomes.
-          </motion.p>
         </div>
       </div>
 
-      {/* VISUAL */}
-      <div className="relative mt-10">
-        <motion.div
-          style={{ y: wavesY }}
-          className="pointer-events-none absolute inset-x-0 top-0 h-[360px] md:h-[520px]"
-        >
-          <Image
-            src="/images/hero-waves.png"
-            alt="Wave background"
-            fill
-            priority
-            className="object-cover object-center"
-            sizes="100vw"
-          />
-        </motion.div>
-
-        {/* floating chips */}
-        {!reduce && (
-          <>
-            <motion.div
-              className="pointer-events-none absolute left-[8%] top-[40px] hidden md:block"
-              animate={{ y: [0, -10, 0], rotate: [0, -2, 0] }}
-              transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <div className="rounded-full border border-black/10 bg-white/70 px-4 py-2 text-xs text-black/60 shadow-sm backdrop-blur">
-                Model evaluation
-              </div>
-            </motion.div>
-
-            <motion.div
-              className="pointer-events-none absolute right-[10%] top-[95px] hidden md:block"
-              animate={{ y: [0, 10, 0], rotate: [0, 2, 0] }}
-              transition={{ duration: 6.2, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <div className="rounded-full border border-black/10 bg-white/70 px-4 py-2 text-xs text-black/60 shadow-sm backdrop-blur">
-                Production deployment
-              </div>
-            </motion.div>
-          </>
-        )}
-
-        <div className="relative mx-auto max-w-6xl px-4">
-          <div className="relative h-[360px] md:h-[520px]">
-            {/* Center */}
-            <motion.div
-              style={{ y: centerY }}
-              className="absolute left-1/2 top-[70px] -translate-x-1/2 md:top-[60px]"
-              animate={reduce ? undefined : { y: [0, -10, 0] }}
-              transition={
-                reduce
-                  ? undefined
-                  : { duration: 4.4, repeat: Infinity, ease: "easeInOut" }
-              }
-            >
-              <div className="relative h-[240px] w-[240px] md:h-[390px] md:w-[390px]">
-                <Image
-                  src="/images/hero-center.png"
-                  alt="Hero center"
-                  fill
-                  priority
-                  className="object-contain"
-                />
-              </div>
-            </motion.div>
-
-            {/* Left */}
-            <motion.div
-              style={{ y: sideY }}
-              className="absolute left-[10px] top-[185px] hidden md:block"
-            >
-              <div className="relative h-[240px] w-[240px]">
-                <Image
-                  src="/images/hero-left.png"
-                  alt="Hero left"
-                  fill
-                  className="object-contain"
-                />
-              </div>
-            </motion.div>
-
-            {/* Right */}
-            <motion.div
-              style={{ y: sideY }}
-              className="absolute right-[10px] top-[185px] hidden md:block"
-            >
-              <div className="relative h-[240px] w-[240px]">
-                <Image
-                  src="/images/hero-right.png"
-                  alt="Hero right"
-                  fill
-                  className="object-contain"
-                />
-              </div>
-            </motion.div>
-
-            {/* Mobile */}
-            <motion.div
-              style={{ y: sideY }}
-              className="absolute left-4 top-[240px] md:hidden"
-            >
-              <div className="relative h-[120px] w-[120px]">
-                <Image src="/images/hero-left.png" alt="Hero left" fill className="object-contain" />
-              </div>
-            </motion.div>
-
-            <motion.div
-              style={{ y: sideY }}
-              className="absolute right-4 top-[240px] md:hidden"
-            >
-              <div className="relative h-[120px] w-[120px]">
-                <Image src="/images/hero-right.png" alt="Hero right" fill className="object-contain" />
-              </div>
-            </motion.div>
-
-            {/* ✅ ARROW (restored) */}
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
-              <button
-                type="button"
-                onClick={onNext}
-                className="group grid h-12 w-12 place-items-center rounded-full border border-black/10 bg-white/70 shadow-sm backdrop-blur transition hover:bg-white/85 active:translate-y-[1px]"
-                aria-label="Next section"
-              >
-                <motion.div
-                  animate={{ y: [0, 7, 0] }}
-                  transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
-                  className="text-[var(--purple)]"
-                >
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-                    <path
-                      d="M6 9L12 15L18 9"
-                      stroke="currentColor"
-                      strokeWidth="2.2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </motion.div>
-              </button>
-
-              <div className="mt-3 text-center text-[11px] tracking-wide text-black/40">
-                Scroll
-              </div>
+      {/* ICONS (same positions) */}
+      <div className="relative z-[2] mx-auto mt-6 max-w-6xl px-4">
+        <div className="relative mx-auto h-[360px] w-full max-w-[980px] md:h-[520px]">
+          {/* center */}
+          <motion.div
+            style={{ y: centerY }}
+            className="absolute left-1/2 top-[52px] -translate-x-1/2 md:top-[64px]"
+            animate={reduce ? undefined : { y: floatY }}
+            transition={
+              reduce ? undefined : { duration: 4.2, repeat: Infinity, ease: "easeInOut" }
+            }
+          >
+            <div className="relative h-[210px] w-[210px] sm:h-[260px] sm:w-[260px] md:h-[360px] md:w-[360px]">
+              <Image
+                src="/images/hero-center.png"
+                alt="Center"
+                fill
+                priority
+                className="object-contain"
+              />
             </div>
+          </motion.div>
+
+          {/* left */}
+          <motion.div
+            style={{ y: sideY }}
+            className="absolute left-0 top-[160px] md:left-[40px] md:top-[230px]"
+          >
+            <div className="relative h-[120px] w-[120px] sm:h-[150px] sm:w-[150px] md:h-[190px] md:w-[190px]">
+              <Image
+                src="/images/hero-left.png"
+                alt="Left"
+                fill
+                className="object-contain"
+              />
+            </div>
+          </motion.div>
+
+          {/* right */}
+          <motion.div
+            style={{ y: sideY }}
+            className="absolute right-0 top-[160px] md:right-[40px] md:top-[230px]"
+          >
+            <div className="relative h-[120px] w-[120px] sm:h-[150px] sm:w-[150px] md:h-[190px] md:w-[190px]">
+              <Image
+                src="/images/hero-right.png"
+                alt="Right"
+                fill
+                className="object-contain"
+              />
+            </div>
+          </motion.div>
+
+          {/* arrow */}
+          <div className="absolute bottom-10 left-1/2 -translate-x-1/2">
+            <button
+              type="button"
+              onClick={onNext}
+              className="grid h-12 w-12 place-items-center rounded-full bg-white/70 shadow-sm backdrop-blur transition hover:bg-white/85 active:translate-y-[1px]"
+              aria-label="Next section"
+            >
+              <motion.div
+                animate={{ y: [0, 7, 0] }}
+                transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+                className="text-[var(--purple)]"
+              >
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M6 9L12 15L18 9"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </motion.div>
+            </button>
           </div>
         </div>
       </div>
-
-      {/* hard seal */}
-      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--bg-soft)]" />
     </section>
   );
 }

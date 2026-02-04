@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import WaveLines from "@/components/shared/WaveLines";
+import Link from "next/dist/client/link";
 
 export default function ServicesEndingBanner() {
   return (
@@ -21,9 +22,11 @@ export default function ServicesEndingBanner() {
           Book A Free Strategy Call & Level Up with AI
         </p>
 
+       <Link href="/contact">
         <Button className="mt-6 rounded-full bg-[var(--purple-dark)] px-10 text-white hover:opacity-95">
           Contact Us
         </Button>
+        </Link>
       </div>
     </section>
   );
