@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import Navbar from "@/components/layout/Navbar";
 
 type CtaCard = {
   id: string;
@@ -19,14 +20,14 @@ const cards: CtaCard[] = [
     title: "Blog",
     desc: "Latest trends. Breakthrough findings. Practical tips. Fuel your next move with our fresh perspectives on everything AI.",
     image: "/images/cta-blog.png",
-    href: "/resources",
+    href: "/blog",
   },
   {
     id: "podcast",
     title: "Podcast",
     desc: "Tune in for candid conversations and fresh perspectives with AI pioneers, industry disruptors, and our own in-house experts.",
     image: "/images/cta-podcast.png",
-    href: "/resources",
+    href: "/podcasts",
   },
   {
     id: "portfolio",
@@ -42,7 +43,8 @@ export default function CTASection() {
   const ease = [0.16, 1, 0.3, 1] as const;
 
   return (
-    <section className="relative h-screen w-full overflow-hidden bg-[#ddbffa]">
+    <section className="relative h-screen w-full overflow-hidden bg-[#ffffff]">
+     
       {/* background depth */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0 bg-[radial-gradient(1200px_650px_at_50%_10%,rgba(255,255,255,0.14),rgba(0,0,0,0)_60%)]" />

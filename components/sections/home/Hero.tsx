@@ -26,11 +26,11 @@ function clamp(n: number, min: number, max: number) {
 export default function FullpageHome() {
   const sections: SectionDef[] = useMemo(
     () => [
-      { id: "hero", node: <HeroSlide />, bg: "bg-transparent" }, // hero draws its bg
-      { id: "process", node: <ProcessSection />, bg: "bg-[var(--purple)]" },
+      { id: "hero", node: <HeroSlide />, bg: "bg-transparent" }, 
       { id: "features", node: <FeaturesSection />, bg: "bg-white" },
-      { id: "stories", node: <SuccessStoriesSection />, bg: "bg-white" },
+      { id: "process", node: <ProcessSection />, bg: "bg-[var(--purple)]" },
       { id: "cta", node: <CTASection />, bg: "bg-white" },
+      { id: "stories", node: <SuccessStoriesSection />, bg: "bg-white" },
       { id: "footer", node: <Footer />, bg: "bg-white" },
     ],
     [],
@@ -377,7 +377,7 @@ function HeroSlide({ onNext }: { onNext?: () => void }) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="font-display text-[38px] sm:text-[44px] md:text-[54px] tracking-[0.06em] text-[var(--purple)] inline-block border-t border-[var(--purple)]/40 pt-4"
+          className="font-display text-[38px] sm:text-[44px] md:text-[54px] tracking-[0.06em] text-[var(--purple)] inline-block border-b border-[var(--purple)]/40 pt-4"
         >
           RevelationML
         </motion.p>

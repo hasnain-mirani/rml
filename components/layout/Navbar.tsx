@@ -5,18 +5,23 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
-type SlideId = "hero" | "process" | "features" | "stories" | "cta" | "footer";
+/**
+ * These IDs MUST match the Home page sections:
+ * hero, features, process, stories, footer, cta
+ */
+type SlideId = "hero" | "features" | "process" | "stories" | "footer" | "cta";
 type NavLink = { label: string; id: SlideId };
 
+/** ✅ REORDERED + UNIQUE IDs (no duplicates) */
 const navLinks: NavLink[] = [
   { label: "Home", id: "hero" },
-  { label: "About Us", id: "process" },
-  { label: "Services", id: "features" },
-  { label: "Resources", id: "stories" },
-  { label: "Contact Us", id: "cta" },
-  { label: "FAQs", id: "footer" },
+  { label: "About Us", id: "features" },
+  { label: "Services", id: "process" },
+  { label: "Resources", id: "cta" },
+  { label: "Testimonals", id: "stories" },
+  { label: "Contact Us", id: "footer" },
 ];
 
 function setHash(id: string) {
@@ -35,7 +40,7 @@ export default function Navbar({
   const [hidden, setHidden] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeId, setActiveId] = useState<SlideId>("hero");
-  const [drawerOpen, setDrawerOpen] = useState(false); // 🔥 mobile drawer
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const lastY = useRef(0);
 
@@ -46,6 +51,11 @@ export default function Navbar({
     const found = navLinks.find((l) => l.id === hash);
     if (found) setActiveId(found.id);
   }, []);
+
+  // close drawer on route change
+  useEffect(() => {
+    setDrawerOpen(false);
+  }, [pathname]);
 
   // hide/show + active sync from the home scroll container
   useEffect(() => {
@@ -96,30 +106,41 @@ export default function Navbar({
     };
   }, [scrollContainerRef, activeId]);
 
-  // ALWAYS push hash/id (never original paths)
+  /**
+   * ✅ FIXED: no double navigation.
+   * - If already on "/", just scroll the container + set hash.
+   * - If on another page, push "/#id" and let Home handle it.
+   */
   const goToId = (id: SlideId) => {
-    router.push(`/#${id}`);
+    if (pathname !== "/") {
+      router.push(`/#${id}`);
+      return;
+    }
 
-    if (pathname === "/") {
-      const container = scrollContainerRef.current;
-      if (!container) return;
+    const container = scrollContainerRef.current;
+    if (!container) {
+      // fallback hash update
+      setActiveId(id);
+      setHash(id);
+      return;
+    }
 
-      const slide = container.querySelector<HTMLElement>(`[data-slide="${id}"]`);
-      if (slide) {
-        setActiveId(id);
-        setHash(id);
-        container.scrollTo({ top: slide.offsetTop, behavior: "smooth" });
-      } else {
-        const index = navLinks.findIndex((x) => x.id === id);
-        if (index >= 0 && typeof window !== "undefined") {
-          setActiveId(id);
-          setHash(id);
-          container.scrollTo({
-            top: index * window.innerHeight,
-            behavior: "smooth",
-          });
-        }
-      }
+    const slide = container.querySelector<HTMLElement>(`[data-slide="${id}"]`);
+    setActiveId(id);
+    setHash(id);
+
+    if (slide) {
+      container.scrollTo({ top: slide.offsetTop, behavior: "smooth" });
+      return;
+    }
+
+    // fallback (kept)
+    const index = navLinks.findIndex((x) => x.id === id);
+    if (index >= 0 && typeof window !== "undefined") {
+      container.scrollTo({
+        top: index * window.innerHeight,
+        behavior: "smooth",
+      });
     }
   };
 
@@ -137,14 +158,13 @@ export default function Navbar({
       <div className="mx-auto max-w-6xl px-4 pt-4 md:pt-6">
         <div
           className={cn(
-            // ▶ round both ends + clip children so inner bg doesn’t square edges
             "relative flex h-[64px] items-center rounded-full overflow-hidden bg-[#7F289A]",
             scrolled
               ? "shadow-[0_14px_40px_rgba(0,0,0,0.22)]"
               : "shadow-[0_10px_26px_rgba(0,0,0,0.16)]"
           )}
         >
-          {/* Logo: push to #hero (rounded left edge as well) */}
+          {/* Logo -> hero */}
           <Link
             href="/#hero"
             className="flex h-full w-[140px] items-center justify-center bg-[#6c217f] rounded-l-full"
@@ -179,17 +199,8 @@ export default function Navbar({
             })}
           </nav>
 
-          {/* ▶ Right-side actions */}
+          {/* Right side (✅ Demo removed) */}
           <div className="ml-auto flex items-center gap-2 pr-2">
-            {/* Desktop “Demo” button */}
-            <button
-              type="button"
-              onClick={() => goToId("cta")}
-              className="hidden md:inline-flex h-9 items-center justify-center rounded-full bg-white/95 px-4 text-xs font-semibold text-[#7F289A] hover:bg-white"
-            >
-              Demo
-            </button>
-
             {/* Mobile hamburger */}
             <button
               type="button"
@@ -198,21 +209,27 @@ export default function Navbar({
               onClick={() => setDrawerOpen(true)}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <path
+                  d="M4 7h16M4 12h16M4 17h16"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
               </svg>
             </button>
 
-            {/* Mobile active label (kept) */}
-            <div className="pr-2 text-xs text-white/70 md:hidden">{activeLabel}</div>
+            {/* Mobile active label */}
+            <div className="pr-2 text-xs text-white/70 md:hidden">
+              {activeLabel}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ▶ Mobile Drawer */}
+      {/* Mobile Drawer */}
       <AnimatePresence>
         {drawerOpen && (
           <>
-            {/* backdrop */}
             <motion.div
               key="backdrop"
               className="fixed inset-0 z-[60] bg-black/40"
@@ -221,7 +238,6 @@ export default function Navbar({
               exit={{ opacity: 0 }}
               onClick={() => setDrawerOpen(false)}
             />
-            {/* panel */}
             <motion.aside
               key="drawer"
               className="fixed right-0 top-0 z-[61] h-full w-[84%] max-w-xs bg-[#1E1230] text-white shadow-2xl"
@@ -238,7 +254,12 @@ export default function Navbar({
                   aria-label="Close menu"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <path d="M6 6l12 12M18 6l-12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <path
+                      d="M6 6l12 12M18 6l-12 12"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
                   </svg>
                 </button>
               </div>
@@ -267,15 +288,9 @@ export default function Navbar({
               </nav>
 
               <div className="mt-auto px-4 py-4 border-t border-white/10">
-                <button
-                  onClick={() => {
-                    setDrawerOpen(false);
-                    goToId("cta");
-                  }}
-                  className="w-full h-10 rounded-full bg-712FB3 text-[#7F289A] text-sm font-semibold"
-                >
-                  Demo
-                </button>
+                <div className="text-xs text-white/60">
+                  Select a section to jump.
+                </div>
               </div>
             </motion.aside>
           </>
