@@ -76,7 +76,7 @@ export default function FooterSection() {
 
             <div className="mt-2 flex items-center gap-4">
               <Link
-                href="https://www.linkedin.com"
+                href="https://www.linkedin.com/company/revelation-ml/posts/?feedView=all"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="LinkedIn"
@@ -85,7 +85,7 @@ export default function FooterSection() {
                 <FiLinkedin className="h-6 w-6 md:h-7 md:w-7" />
               </Link>
               <Link
-                href="https://github.com"
+                href="https://github.com/revelationml"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="GitHub"
